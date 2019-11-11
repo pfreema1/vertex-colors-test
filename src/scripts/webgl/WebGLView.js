@@ -57,8 +57,6 @@ export default class WebGLView {
 		this.renderer.autoClear = true;
 
 		this.clock = new THREE.Clock();
-
-		this.controls = new OrbitControls(this.camera, this.renderer.domElement);
 	}
 
 	loadTextMesh() {
@@ -70,7 +68,7 @@ export default class WebGLView {
 				this.textMesh = object.scene.children[0];
 				console.log(this.textMesh);
 				this.textMesh.add(new THREE.AxesHelper());
-				this.scene.add(this.textMesh);
+				this.bgScene.add(this.textMesh);
 
 				res();
 			});
@@ -140,7 +138,10 @@ export default class WebGLView {
 			0.01,
 			100
 		);
-		this.bgCamera.position.z = 30;
+		this.controls = new OrbitControls(this.bgCamera, this.renderer.domElement);
+
+		this.bgCamera.position.z = 3;
+		this.controls.update();
 
 		this.bgScene = new THREE.Scene();
 	}
