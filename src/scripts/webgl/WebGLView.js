@@ -5,6 +5,7 @@ import Tweakpane from 'tweakpane';
 import fullScreenTriFrag from '../../shaders/fullScreenTri.frag';
 import fullScreenTriVert from '../../shaders/fullScreenTri.vert';
 import OrbitControls from 'three-orbitcontrols';
+import TweenMax from 'TweenMax';
 
 function remap(t, old_min, old_max, new_min, new_max) {
 	let old_range = old_max - old_min;
@@ -23,6 +24,7 @@ export default class WebGLView {
 		};
 
 		this.init();
+
 	}
 
 	async init() {
@@ -186,6 +188,10 @@ export default class WebGLView {
 		this.tetra.rotation.y += this.PARAMS.rotSpeed;
 	}
 
+	updateTextMesh() {
+		this.textMesh.rotation.y += this.PARAMS.rotSpeed;
+	}
+
 	update() {
 		const delta = this.clock.getDelta();
 		const time = performance.now() * 0.0005;
@@ -198,6 +204,10 @@ export default class WebGLView {
 
 		if (this.tetra) {
 			this.updateTetra();
+		}
+
+		if (this.textMesh) {
+			this.updateTextMesh();
 		}
 
 		if (this.trackball) this.trackball.update();
