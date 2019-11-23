@@ -33,7 +33,7 @@ export default class WebGLView {
 		this.initObject();
 		this.initLights();
 		this.initTweakPane();
-		await this.loadTextMesh();
+		await this.loadMesh();
 		this.initRenderTri();
 	}
 
@@ -61,16 +61,16 @@ export default class WebGLView {
 		this.clock = new THREE.Clock();
 	}
 
-	loadTextMesh() {
+	loadMesh() {
 		return new Promise((res, rej) => {
 			let loader = new GLTFLoader();
 
-			loader.load('./bbali.glb', object => {
+			loader.load('./vertex-colors-test.glb', object => {
 				object;
-				this.textMesh = object.scene.children[0];
-				console.log(this.textMesh);
-				this.textMesh.add(new THREE.AxesHelper());
-				this.bgScene.add(this.textMesh);
+				this.testMesh = object.scene.children[0];
+				console.log(this.testMesh);
+				this.testMesh.add(new THREE.AxesHelper());
+				this.bgScene.add(this.testMesh);
 
 				res();
 			});
@@ -188,8 +188,8 @@ export default class WebGLView {
 		this.tetra.rotation.y += this.PARAMS.rotSpeed;
 	}
 
-	updateTextMesh() {
-		this.textMesh.rotation.y += this.PARAMS.rotSpeed;
+	updateTestMesh() {
+		this.testMesh.rotation.y += this.PARAMS.rotSpeed;
 	}
 
 	update() {
@@ -206,8 +206,8 @@ export default class WebGLView {
 			this.updateTetra();
 		}
 
-		if (this.textMesh) {
-			this.updateTextMesh();
+		if (this.testMesh) {
+			this.updateTestMesh();
 		}
 
 		if (this.trackball) this.trackball.update();
