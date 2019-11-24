@@ -22,7 +22,7 @@ export default class WebGLView {
   constructor(app) {
     this.app = app;
     this.PARAMS = {
-      rotSpeed: 0.05
+      rotSpeed: 0.01
     };
 
     this.init();
@@ -79,10 +79,14 @@ export default class WebGLView {
     let material = new THREE.ShaderMaterial({
       fragmentShader: glslify(testShaderFrag),
       vertexShader: glslify(testShaderVert),
-      uniforms: {}
+      uniforms: {
+        u_time: {
+          value: 0.0
+        }
+      }
     });
 
-    this.testMesh.material = material;
+    this.testMesh.material = this.testMeshMaterial = material;
 
     this.testMesh.material.needsUpdate = true;
   }
@@ -190,6 +194,10 @@ export default class WebGLView {
 
     if (this.triMaterial) {
       this.triMaterial.uniforms.uTime.value = time;
+    }
+
+    if (this.testMeshMaterial) {
+      this.testMeshMaterial.uniforms.u_time.value = time;
     }
 
     if (this.tetra) {
