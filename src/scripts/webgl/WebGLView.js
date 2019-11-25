@@ -10,212 +10,219 @@ import OrbitControls from 'three-orbitcontrols';
 import TweenMax from 'TweenMax';
 
 function remap(t, old_min, old_max, new_min, new_max) {
-  let old_range = old_max - old_min;
-  let normalizedT = t - old_min;
-  let normalizedVal = normalizedT / old_range;
-  let new_range = new_max - new_min;
-  let newVal = normalizedVal * new_range + new_min;
-  return newVal;
+	let old_range = old_max - old_min;
+	let normalizedT = t - old_min;
+	let normalizedVal = normalizedT / old_range;
+	let new_range = new_max - new_min;
+	let newVal = normalizedVal * new_range + new_min;
+	return newVal;
 }
 
 export default class WebGLView {
-  constructor(app) {
-    this.app = app;
-    this.PARAMS = {
-      rotSpeed: 0.01
-    };
+	constructor(app) {
+		this.app = app;
+		this.PARAMS = {
+			rotSpeed: 0.01
+		};
 
-    this.init();
-  }
+		this.init();
+	}
 
-  async init() {
-    this.initThree();
-    this.initBgScene();
-    this.initTweakPane();
-    await this.loadMesh();
-    this.setupMaterial();
-    this.initRenderTri();
-  }
+	async init() {
+		this.initThree();
+		this.initBgScene();
+		this.initTweakPane();
+		await this.loadMesh();
+		this.setupMaterial();
+		this.initRenderTri();
+	}
 
-  initTweakPane() {
-    this.pane = new Tweakpane();
+	initTweakPane() {
+		this.pane = new Tweakpane();
 
-    this.pane
-      .addInput(this.PARAMS, 'rotSpeed', {
-        min: 0.0,
-        max: 0.5
-      })
-      .on('change', value => {});
-  }
+		this.pane
+			.addInput(this.PARAMS, 'rotSpeed', {
+				min: 0.0,
+				max: 0.5
+			})
+			.on('change', value => { });
+	}
 
-  initThree() {
-    this.scene = new THREE.Scene();
+	initThree() {
+		this.scene = new THREE.Scene();
 
-    this.camera = new THREE.OrthographicCamera();
+		this.camera = new THREE.OrthographicCamera();
 
-    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    this.renderer.autoClear = true;
+		this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+		this.renderer.autoClear = true;
 
-    this.clock = new THREE.Clock();
-  }
+		this.clock = new THREE.Clock();
+	}
 
-  loadMesh() {
-    return new Promise((res, rej) => {
-      let loader = new GLTFLoader();
+	loadMesh() {
+		return new Promise((res, rej) => {
+			let loader = new GLTFLoader();
 
-      loader.load('./vertex-colors-test.glb', object => {
-        object;
-        this.testMesh = object.scene.children[0];
-        console.log(this.testMesh);
-        this.testMesh.add(new THREE.AxesHelper());
-        this.bgScene.add(this.testMesh);
+			loader.load('./all-test-with-texture.glb', object => {
+				object;
+				this.testMesh = object.scene.children[0];
+				console.log(this.testMesh);
+				this.testMesh.add(new THREE.AxesHelper());
+				this.bgScene.add(this.testMesh);
 
-        res();
-      });
-    });
-  }
+				res();
+			});
+		});
+	}
 
-  setupMaterial() {
-    let material = new THREE.ShaderMaterial({
-      fragmentShader: glslify(testShaderFrag),
-      vertexShader: glslify(testShaderVert),
-      uniforms: {
-        u_time: {
-          value: 0.0
-        }
-      }
-    });
+	setupMaterial() {
+		let material = new THREE.ShaderMaterial({
+			fragmentShader: glslify(testShaderFrag),
+			vertexShader: glslify(testShaderVert),
+			uniforms: {
+				u_time: {
+					value: 0.0
+				},
+				u_texture: {
+					value: new THREE.TextureLoader().load('./all-color.png', (texture) => {
+						console.log(texture);
+					})
+				}
+			}
+		});
 
-    this.testMesh.material = this.testMeshMaterial = material;
+		this.testMesh.material = this.testMeshMaterial = material;
 
-    this.testMesh.material.needsUpdate = true;
-  }
+		this.testMesh.material.needsUpdate = true;
 
-  returnRenderTriGeometry() {
-    const geometry = new THREE.BufferGeometry();
+		setTimeout(() => {
+			this.testMesh.material
+		}, 1000);
+	}
 
-    // triangle in clip space coords
-    const vertices = new Float32Array([-1.0, -1.0, 3.0, -1.0, -1.0, 3.0]);
+	returnRenderTriGeometry() {
+		const geometry = new THREE.BufferGeometry();
 
-    geometry.addAttribute('position', new THREE.BufferAttribute(vertices, 2));
+		// triangle in clip space coords
+		const vertices = new Float32Array([-1.0, -1.0, 3.0, -1.0, -1.0, 3.0]);
 
-    return geometry;
-  }
+		geometry.addAttribute('position', new THREE.BufferAttribute(vertices, 2));
 
-  initRenderTri() {
-    // mostly taken from here: https://medium.com/@luruke/simple-postprocessing-in-three-js-91936ecadfb7
+		return geometry;
+	}
 
-    this.resize();
-    const geometry = this.returnRenderTriGeometry();
+	initRenderTri() {
+		// mostly taken from here: https://medium.com/@luruke/simple-postprocessing-in-three-js-91936ecadfb7
 
-    const resolution = new THREE.Vector2();
-    this.renderer.getDrawingBufferSize(resolution);
+		this.resize();
+		const geometry = this.returnRenderTriGeometry();
 
-    this.RenderTriTarget = new THREE.WebGLRenderTarget(
-      resolution.x,
-      resolution.y,
-      {
-        format: THREE.RGBFormat,
-        stencilBuffer: false,
-        depthBuffer: true
-      }
-    );
+		const resolution = new THREE.Vector2();
+		this.renderer.getDrawingBufferSize(resolution);
 
-    this.triMaterial = new THREE.RawShaderMaterial({
-      fragmentShader: glslify(fullScreenTriFrag),
-      vertexShader: glslify(fullScreenTriVert),
-      uniforms: {
-        uScene: {
-          type: 't',
-          value: this.bgRenderTarget.texture
-        },
-        uResolution: { value: resolution },
-        uTime: {
-          value: 0.0
-        }
-      }
-    });
+		this.RenderTriTarget = new THREE.WebGLRenderTarget(
+			resolution.x,
+			resolution.y,
+			{
+				format: THREE.RGBFormat,
+				stencilBuffer: false,
+				depthBuffer: true
+			}
+		);
 
-    console.log(this.bgRenderTarget.texture);
+		this.triMaterial = new THREE.RawShaderMaterial({
+			fragmentShader: glslify(fullScreenTriFrag),
+			vertexShader: glslify(fullScreenTriVert),
+			uniforms: {
+				uScene: {
+					type: 't',
+					value: this.bgRenderTarget.texture
+				},
+				uResolution: { value: resolution },
+				uTime: {
+					value: 0.0
+				}
+			}
+		});
 
-    let renderTri = new THREE.Mesh(geometry, this.triMaterial);
-    renderTri.frustumCulled = false;
-    this.scene.add(renderTri);
-  }
+		let renderTri = new THREE.Mesh(geometry, this.triMaterial);
+		renderTri.frustumCulled = false;
+		this.scene.add(renderTri);
+	}
 
-  initBgScene() {
-    this.bgRenderTarget = new THREE.WebGLRenderTarget(
-      window.innerWidth,
-      window.innerHeight
-    );
-    this.bgCamera = new THREE.PerspectiveCamera(
-      50,
-      window.innerWidth / window.innerHeight,
-      0.01,
-      100
-    );
-    this.controls = new OrbitControls(this.bgCamera, this.renderer.domElement);
+	initBgScene() {
+		this.bgRenderTarget = new THREE.WebGLRenderTarget(
+			window.innerWidth,
+			window.innerHeight
+		);
+		this.bgCamera = new THREE.PerspectiveCamera(
+			50,
+			window.innerWidth / window.innerHeight,
+			0.01,
+			100
+		);
+		this.controls = new OrbitControls(this.bgCamera, this.renderer.domElement);
 
-    this.bgCamera.position.z = 3;
-    this.controls.update();
+		this.bgCamera.position.z = 3;
+		this.controls.update();
 
-    this.bgScene = new THREE.Scene();
-  }
+		this.bgScene = new THREE.Scene();
+	}
 
-  resize() {
-    if (!this.renderer) return;
-    this.camera.aspect = window.innerWidth / window.innerHeight;
-    this.camera.updateProjectionMatrix();
+	resize() {
+		if (!this.renderer) return;
+		this.camera.aspect = window.innerWidth / window.innerHeight;
+		this.camera.updateProjectionMatrix();
 
-    this.fovHeight =
-      2 *
-      Math.tan((this.camera.fov * Math.PI) / 180 / 2) *
-      this.camera.position.z;
-    this.fovWidth = this.fovHeight * this.camera.aspect;
+		this.fovHeight =
+			2 *
+			Math.tan((this.camera.fov * Math.PI) / 180 / 2) *
+			this.camera.position.z;
+		this.fovWidth = this.fovHeight * this.camera.aspect;
 
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
+		this.renderer.setSize(window.innerWidth, window.innerHeight);
 
-    if (this.trackball) this.trackball.handleResize();
-  }
+		if (this.trackball) this.trackball.handleResize();
+	}
 
-  updateTetra() {
-    this.tetra.rotation.y += this.PARAMS.rotSpeed;
-  }
+	updateTetra() {
+		this.tetra.rotation.y += this.PARAMS.rotSpeed;
+	}
 
-  updateTestMesh() {
-    this.testMesh.rotation.y += this.PARAMS.rotSpeed;
-  }
+	updateTestMesh() {
+		this.testMesh.rotation.y += this.PARAMS.rotSpeed;
+	}
 
-  update() {
-    const delta = this.clock.getDelta();
-    const time = performance.now() * 0.0005;
+	update() {
+		const delta = this.clock.getDelta();
+		const time = performance.now() * 0.0005;
 
-    this.controls.update();
+		this.controls.update();
 
-    if (this.triMaterial) {
-      this.triMaterial.uniforms.uTime.value = time;
-    }
+		if (this.triMaterial) {
+			this.triMaterial.uniforms.uTime.value = time;
+		}
 
-    if (this.testMeshMaterial) {
-      this.testMeshMaterial.uniforms.u_time.value = time;
-    }
+		if (this.testMeshMaterial) {
+			this.testMeshMaterial.uniforms.u_time.value = time;
+		}
 
-    if (this.tetra) {
-      this.updateTetra();
-    }
+		if (this.tetra) {
+			this.updateTetra();
+		}
 
-    if (this.testMesh) {
-      this.updateTestMesh();
-    }
+		if (this.testMesh) {
+			this.updateTestMesh();
+		}
 
-    if (this.trackball) this.trackball.update();
-  }
+		if (this.trackball) this.trackball.update();
+	}
 
-  draw() {
-    this.renderer.setRenderTarget(this.bgRenderTarget);
-    this.renderer.render(this.bgScene, this.bgCamera);
-    this.renderer.setRenderTarget(null);
+	draw() {
+		this.renderer.setRenderTarget(this.bgRenderTarget);
+		this.renderer.render(this.bgScene, this.bgCamera);
+		this.renderer.setRenderTarget(null);
 
-    this.renderer.render(this.scene, this.camera);
-  }
+		this.renderer.render(this.scene, this.camera);
+	}
 }

@@ -2,6 +2,7 @@ varying vec3 vNormal;
 varying vec3 vColor;
 varying vec2 vUv;
 uniform float u_time;
+uniform sampler2D u_texture;
 
 vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
 vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
@@ -37,26 +38,30 @@ float snoise(vec2 v) {
 }
 
 void main() {
-  vec2 st = vUv;  
+  // vec2 st = vUv;  
   vec3 color = vec3(0.0);
-  vec2 pos = vec2(st * 300.0);
-  vec3 outsideColor = vec3(0.0);
+  // vec2 pos = vec2(st * 300.0);
+  // vec3 outsideColor = vec3(0.0);
+  vec4 textureColor = texture2D(u_texture, vUv);
 
-  float DF = 0.0;
+  // float DF = 0.0;
 
-  // add a random position
-  float a = 0.0;
-  vec2 vel = vec2(u_time * 0.1);
-  DF += snoise(pos + vel) * 0.25 + 0.25;
+  // // add a random position
+  // float a = 0.0;
+  // vec2 vel = vec2(u_time * 0.1);
+  // DF += snoise(pos + vel) * 0.25 + 0.25;
 
-  // add a random position
-  a = snoise(pos * vec2(cos(u_time*0.15), sin(u_time*0.1)) * 0.1) * 3.1415;
-  vel = vec2(cos(a), sin(a));
-  DF += snoise(pos + vel) * 0.25 + 0.25;
+  // // add a random position
+  // a = snoise(pos * vec2(cos(u_time*0.15), sin(u_time*0.1)) * 0.1) * 3.1415;
+  // vel = vec2(cos(a), sin(a));
+  // DF += snoise(pos + vel) * 0.25 + 0.25;
 
-  color = vec3( smoothstep(.7,.75,fract(DF)) );
+  // color = vec3( smoothstep(.7,.75,fract(DF)) );
 
-  color = mix(color, outsideColor, vColor);
+  // color = mix(color, outsideColor, textureColor.r);
+
+
+  color = vec3(textureColor.rgb);
 
   gl_FragColor = vec4(color, 1.0);
 }
