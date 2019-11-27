@@ -1,7 +1,10 @@
+#pragma glslify: map = require(glsl-map)
+
 varying vec3 vNormal;
 varying vec2 vUv;
 uniform float u_time;
 uniform sampler2D u_texture;
+uniform vec2 uMouse;
 
 varying vec3 fragPos;
 
@@ -65,7 +68,9 @@ void main() {
 
   ///////////////////////////
 
-  vec3 lightPos = vec3(-2.2, 2.0, 2.0);
+  float lightX = map(uMouse.x, -1.0, 1.0, -2.2, 2.2);
+  float lightY = map(uMouse.y, -1.0, 1.0, -2.0, 2.0);
+  vec3 lightPos = vec3(lightX, lightY, 2.0);
   vec3 norm = normalize(vNormal);
   vec3 lightDir = normalize(lightPos - fragPos);
   float diff = max(dot(norm, lightDir), 0.0);

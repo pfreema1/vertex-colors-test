@@ -1,8 +1,10 @@
 varying vec3 vNormal;
 varying vec3 vColor;
 varying vec2 vUv;
+
 uniform float u_time;
 uniform sampler2D u_texture;
+uniform vec2 uMouse;
 
 vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
 vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
@@ -37,10 +39,14 @@ float snoise(vec2 v) {
     return 130.0 * dot(m, g);
 }
 
+float rand(vec2 co){
+    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+}
+
 void main() {
   vec2 st = vUv;  
   vec3 color = vec3(0.0);
-  vec2 pos = vec2(st * 300.0);
+  vec2 pos = vec2(st * 400.0);
   vec3 outsideColor = vec3(0.0);
   vec4 textureColor = texture2D(u_texture, vUv);
 
@@ -54,16 +60,19 @@ void main() {
   // add a random position
   a = snoise(pos * vec2(cos(u_time*0.15), sin(u_time*0.1)) * 0.1) * 3.1415;
   vel = vec2(cos(a), sin(a));
-  DF += snoise(pos + vel) * 0.25 + 0.25;
+  DF += snoise(pos + vel) * 0.25 + uMouse.x * 0.5;
 
   color = vec3( smoothstep(.7,.75,fract(DF)) );
 
-//   color = mix(color, outsideColor, textureColor.r);
+  // give the noise a gradient based on mouse
+  // color = mix(color, outsideColor, vUv.x + 0.2);
+
+  vec3 edgeStatic = mix(vec3(0.0), vec3(0.05), rand(vec2(vUv.x * u_time, vUv.x)));
+
+  // apply edgeStatic to background
+  // color = mix(color, edgeStatic, smoothstep(0.83, 0.99, vUv.y) + smoothstep(0.83, 0.99, vUv.x));
 
 
-  // color = vec3(textureColor.rgb);
-
-  color = mix(color, outsideColor, vUv.x + 0.2);
 
   gl_FragColor = vec4(color, 1.0);
 }

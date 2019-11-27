@@ -7,6 +7,7 @@ import fullScreenTriVert from '../../shaders/fullScreenTri.vert';
 import testShaderFrag from '../../shaders/testShader.frag';
 import testShaderVert from '../../shaders/testShader.vert';
 import planeShaderFrag from '../../shaders/planeShader.frag';
+import planeShaderVert from '../../shaders/planeShader.vert';
 import OrbitControls from 'three-orbitcontrols';
 import TweenMax from 'TweenMax';
 
@@ -32,18 +33,31 @@ export default class WebGLView {
 	async init() {
 		this.initThree();
 		this.initBgScene();
-		this.initTweakPane();
+		// this.initTweakPane();
 		await this.loadMesh();
 		this.setupMaterial();
 		this.initPlane();
 		this.initRenderTri();
+		this.setupMouseListener();
+	}
+
+	setupMouseListener() {
+		this.mouse = new THREE.Vector2();
+		this.width = window.innerWidth;
+		this.height = window.innerHeight;
+
+		document.addEventListener('mousemove', ({ clientX, clientY }) => {
+			this.mouse.x = (clientX / this.width) * 2 - 1;
+			this.mouse.y = -(clientY / this.height) * 2 + 1;
+
+		})
 	}
 
 	initPlane() {
-		let geo = new THREE.PlaneBufferGeometry(10, 6, 32);
+		let geo = new THREE.PlaneBufferGeometry(12, 10, 32);
 		this.planeMat = new THREE.ShaderMaterial({
 			fragmentShader: glslify(planeShaderFrag),
-			vertexShader: glslify(testShaderVert),
+			vertexShader: glslify(planeShaderVert),
 			uniforms: {
 				u_time: {
 					value: 0.0
@@ -54,6 +68,9 @@ export default class WebGLView {
 						texture.flipY = false;
 						texture.needsUpdate = true;
 					})
+				},
+				uMouse: {
+					value: 0.0
 				}
 			}
 		});
@@ -115,6 +132,9 @@ export default class WebGLView {
 						texture.flipY = false;
 						texture.needsUpdate = true;
 					})
+				},
+				uMouse: {
+					value: 0.0
 				}
 			}
 		});
@@ -199,7 +219,7 @@ export default class WebGLView {
 		);
 		this.controls = new OrbitControls(this.bgCamera, this.renderer.domElement);
 
-		this.bgCamera.position.z = 3;
+		this.bgCamera.position.z = 6;
 		this.controls.update();
 
 		this.bgScene = new THREE.Scene();
@@ -237,10 +257,12 @@ export default class WebGLView {
 
 		if (this.testMeshMaterial) {
 			this.testMeshMaterial.uniforms.u_time.value = time;
+			this.testMeshMaterial.uniforms.uMouse.value = this.mouse;
 		}
 
 		if (this.planeMat) {
 			this.planeMat.uniforms.u_time.value = time;
+			this.planeMat.uniforms.uMouse.value = this.mouse;
 		}
 
 		if (this.testMesh) {

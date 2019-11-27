@@ -23,6 +23,7 @@
     "async-preloader": "^4.8.1",
     "domready": "^1.0.8",
     "glsl-inverse": "^1.0.0",
+    "glsl-map": "^1.0.1",
     "glsl-transpose": "^1.0.0",
     "postprocessing": "^6.8.8",
     "stats.js": "^0.17.0",
