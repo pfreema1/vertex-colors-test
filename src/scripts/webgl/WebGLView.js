@@ -217,10 +217,10 @@ export default class WebGLView {
 			0.01,
 			100
 		);
-		this.controls = new OrbitControls(this.bgCamera, this.renderer.domElement);
+		// this.controls = new OrbitControls(this.bgCamera, this.renderer.domElement);
 
 		this.bgCamera.position.z = 6;
-		this.controls.update();
+		// this.controls.update();
 
 		this.bgScene = new THREE.Scene();
 	}
@@ -249,7 +249,7 @@ export default class WebGLView {
 		const delta = this.clock.getDelta();
 		const time = performance.now() * 0.0005;
 
-		this.controls.update();
+		// this.controls.update();
 
 		if (this.triMaterial) {
 			this.triMaterial.uniforms.uTime.value = time;
