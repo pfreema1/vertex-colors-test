@@ -6,6 +6,7 @@ import fullScreenTriFrag from '../../shaders/fullScreenTri.frag';
 import fullScreenTriVert from '../../shaders/fullScreenTri.vert';
 import testShaderFrag from '../../shaders/testShader.frag';
 import testShaderVert from '../../shaders/testShader.vert';
+import planeShaderFrag from '../../shaders/planeShader.frag';
 import OrbitControls from 'three-orbitcontrols';
 import TweenMax from 'TweenMax';
 
@@ -22,7 +23,7 @@ export default class WebGLView {
 	constructor(app) {
 		this.app = app;
 		this.PARAMS = {
-			rotSpeed: 0.01
+			rotSpeed: 0.005
 		};
 
 		this.init();
@@ -34,7 +35,32 @@ export default class WebGLView {
 		this.initTweakPane();
 		await this.loadMesh();
 		this.setupMaterial();
+		this.initPlane();
 		this.initRenderTri();
+	}
+
+	initPlane() {
+		let geo = new THREE.PlaneBufferGeometry(10, 6, 32);
+		this.planeMat = new THREE.ShaderMaterial({
+			fragmentShader: glslify(planeShaderFrag),
+			vertexShader: glslify(testShaderVert),
+			uniforms: {
+				u_time: {
+					value: 0.0
+				},
+				u_texture: {
+					value: new THREE.TextureLoader().load('./all-color.png', (texture) => {
+						console.log(texture);
+						texture.flipY = false;
+						texture.needsUpdate = true;
+					})
+				}
+			}
+		});
+
+		this.scenePlane = new THREE.Mesh(geo, this.planeMat);
+
+		this.bgScene.add(this.scenePlane);
 	}
 
 	initTweakPane() {
@@ -63,11 +89,11 @@ export default class WebGLView {
 		return new Promise((res, rej) => {
 			let loader = new GLTFLoader();
 
-			loader.load('./all-test-with-texture.glb', object => {
+			loader.load('./noise.glb', object => {
 				object;
 				this.testMesh = object.scene.children[0];
 				console.log(this.testMesh);
-				this.testMesh.add(new THREE.AxesHelper());
+				// this.testMesh.add(new THREE.AxesHelper());
 				this.bgScene.add(this.testMesh);
 
 				res();
@@ -86,6 +112,8 @@ export default class WebGLView {
 				u_texture: {
 					value: new THREE.TextureLoader().load('./all-color.png', (texture) => {
 						console.log(texture);
+						texture.flipY = false;
+						texture.needsUpdate = true;
 					})
 				}
 			}
@@ -95,9 +123,17 @@ export default class WebGLView {
 
 		this.testMesh.material.needsUpdate = true;
 
-		setTimeout(() => {
-			this.testMesh.material
-		}, 1000);
+		// positioning
+		// this.testMesh.rotation.x += Math.PI / 2;
+		this.testMesh.position.z += 0.3;
+
+		// TweenMax.fromTo(this.testMesh.position, 2.0, {
+		// 	y: -0.4
+		// }, {
+		// 	y: 0.7,
+		// 	repeat: -1,
+		// 	yoyo: true
+		// });
 	}
 
 	returnRenderTriGeometry() {
@@ -185,10 +221,6 @@ export default class WebGLView {
 		if (this.trackball) this.trackball.handleResize();
 	}
 
-	updateTetra() {
-		this.tetra.rotation.y += this.PARAMS.rotSpeed;
-	}
-
 	updateTestMesh() {
 		this.testMesh.rotation.y += this.PARAMS.rotSpeed;
 	}
@@ -207,8 +239,8 @@ export default class WebGLView {
 			this.testMeshMaterial.uniforms.u_time.value = time;
 		}
 
-		if (this.tetra) {
-			this.updateTetra();
+		if (this.planeMat) {
+			this.planeMat.uniforms.u_time.value = time;
 		}
 
 		if (this.testMesh) {

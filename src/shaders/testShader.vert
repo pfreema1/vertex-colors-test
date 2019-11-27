@@ -1,16 +1,17 @@
+#pragma glslify: inverse = require(glsl-inverse)
+#pragma glslify: transpose = require(glsl-transpose)
+
 varying vec3 vNormal;
-varying vec3 vColor;
 varying vec2 vUv;
 
-attribute vec3 color;
+varying vec3 fragPos;
 
 
 void main() {
-  vNormal = normal;
-  vColor = color;
+  vNormal = mat3(transpose(inverse(modelMatrix))) * normal;
   vUv = uv;
-//   lightVec = normalize(position - customPointLightPos);
- 
+
+  fragPos = vec3(modelMatrix * vec4(position, 1.0));
 
   gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
 }

@@ -1,9 +1,8 @@
 varying vec3 vNormal;
+varying vec3 vColor;
 varying vec2 vUv;
 uniform float u_time;
 uniform sampler2D u_texture;
-
-varying vec3 fragPos;
 
 vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
 vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
@@ -59,19 +58,12 @@ void main() {
 
   color = vec3( smoothstep(.7,.75,fract(DF)) );
 
-  // color = mix(color, outsideColor, textureColor.r);
+//   color = mix(color, outsideColor, textureColor.r);
 
-  // color = mix(color, outsideColor, 1.0);
 
-  ///////////////////////////
+  // color = vec3(textureColor.rgb);
 
-  vec3 lightPos = vec3(-2.2, 2.0, 2.0);
-  vec3 norm = normalize(vNormal);
-  vec3 lightDir = normalize(lightPos - fragPos);
-  float diff = max(dot(norm, lightDir), 0.0);
+  color = mix(color, outsideColor, vUv.x + 0.2);
 
-  color = mix(color, outsideColor, 1.0 - diff);
-
-  // color = vec3(diff);
   gl_FragColor = vec4(color, 1.0);
 }
